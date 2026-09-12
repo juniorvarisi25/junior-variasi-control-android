@@ -20,7 +20,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
     private static final String PREFS = "junior_variasi_prefs";
@@ -39,17 +39,12 @@ public class MainActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
         hideSystemUi();
-
         prefs = getSharedPreferences(PREFS, Context.MODE_PRIVATE);
         showSplash();
-
         new Handler(Looper.getMainLooper()).postDelayed(() -> {
             String savedIp = prefs.getString(KEY_IP, "");
-            if (savedIp == null || savedIp.trim().isEmpty()) {
-                showIpDialog(DEFAULT_IP, true);
-            } else {
-                openWebControl(savedIp);
-            }
+            if (savedIp == null || savedIp.trim().isEmpty()) showIpDialog(DEFAULT_IP, true);
+            else openWebControl(savedIp);
         }, SPLASH_MS);
     }
 
@@ -60,36 +55,29 @@ public class MainActivity extends Activity {
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-        );
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
     }
 
     private void showSplash() {
         root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
-
-        ImageView logo = new ImageView(this);
-        logo.setImageResource(com.juniorvariasi.control.R.drawable.splash_logo);
-        logo.setScaleType(ImageView.ScaleType.FIT_CENTER);
-        int pad = dp(28);
-        logo.setPadding(pad, pad, pad, pad);
-
+        TextView title = new TextView(this);
+        title.setText("JUNIOR VARIASI\nMODUL KURILING");
+        title.setTextColor(Color.WHITE);
+        title.setTextSize(26);
+        title.setGravity(Gravity.CENTER);
+        title.setTypeface(null, android.graphics.Typeface.BOLD);
         FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        );
-        lp.gravity = Gravity.CENTER;
-        root.addView(logo, lp);
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        root.addView(title, lp);
         setContentView(root);
     }
 
     private void openWebControl(String rawIp) {
         String ip = normalizeIp(rawIp);
         prefs.edit().putString(KEY_IP, ip).apply();
-
         root = new FrameLayout(this);
         root.setBackgroundColor(Color.BLACK);
-
         webView = new WebView(this);
         WebSettings s = webView.getSettings();
         s.setJavaScriptEnabled(true);
@@ -102,23 +90,17 @@ public class MainActivity extends Activity {
         s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         s.setAllowFileAccess(true);
         s.setAllowContentAccess(true);
-
         webView.setWebViewClient(new WebViewClient());
         webView.setWebChromeClient(new WebChromeClient());
         webView.setBackgroundColor(Color.BLACK);
-
         webView.setOnLongClickListener(v -> {
             showIpDialog(prefs.getString(KEY_IP, DEFAULT_IP), false);
             return true;
         });
         webView.setLongClickable(true);
-
         root.addView(webView, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT
-        ));
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(root);
-
         webView.loadUrl("http://" + ip + "/");
     }
 
@@ -131,24 +113,16 @@ public class MainActivity extends Activity {
         input.setHint("Contoh: 10.206.200.160");
         int p = dp(18);
         input.setPadding(p, p, p, p);
-
         FrameLayout box = new FrameLayout(this);
         box.setPadding(dp(18), dp(4), dp(18), 0);
         box.addView(input, new FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        ));
-
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         AlertDialog.Builder b = new AlertDialog.Builder(this)
                 .setTitle("IP MODUL JUNIOR")
                 .setMessage(firstRun ? "Masukkan IP modul. IP ini akan disimpan di HP." : "Ganti IP modul lalu tekan HUBUNGKAN.")
                 .setView(box)
                 .setPositiveButton("HUBUNGKAN", null);
-
-        if (!firstRun) {
-            b.setNegativeButton("BATAL", (d, w) -> d.dismiss());
-        }
-
+        if (!firstRun) b.setNegativeButton("BATAL", (d, w) -> d.dismiss());
         AlertDialog dialog = b.create();
         dialog.setOnShowListener(d -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v -> {
             String ip = normalizeIp(input.getText().toString());
@@ -165,8 +139,7 @@ public class MainActivity extends Activity {
 
     private String normalizeIp(String value) {
         if (value == null) return "";
-        String s = value.trim();
-        s = s.replace("http://", "").replace("https://", "");
+        String s = value.trim().replace("http://", "").replace("https://", "");
         int slash = s.indexOf('/');
         if (slash >= 0) s = s.substring(0, slash);
         return s.trim();
@@ -178,11 +151,8 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        if (webView != null && webView.canGoBack()) {
-            webView.goBack();
-        } else {
-            super.onBackPressed();
-        }
+        if (webView != null && webView.canGoBack()) webView.goBack();
+        else super.onBackPressed();
     }
 
     @Override
